@@ -1,5 +1,13 @@
+export const revalidate = 0;
+export const dynamic = "force-dynamic";
+
 import { NextResponse } from "next/server";
-import { getMember, updateMember, deleteMember } from "../_store";
+import {
+  getMember,
+  updateMember,
+  deleteMember,
+  type UpdateMemberInput,
+} from "../_store";
 
 export async function GET(
   _req: Request,
@@ -14,7 +22,7 @@ export async function PATCH(
   req: Request,
   { params }: { params: { id: string } }
 ) {
-  const patch = await req.json();
+  const patch = (await req.json()) as UpdateMemberInput;
   const updated = updateMember(params.id, patch);
   if (!updated)
     return NextResponse.json({ error: "Not found" }, { status: 404 });

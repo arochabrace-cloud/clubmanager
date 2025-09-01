@@ -1,5 +1,23 @@
+import { Member, MemberStatus } from "@/types/member";
+
 // src/app/api/members/_store.ts
-import { Member } from "@/types/member";
+
+// Inputs for API/store (optional where appropriate)
+export type CreateMemberInput = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  level?: string | null;
+  status?: MemberStatus;
+  residentialAddress?: string;
+  occupation?: string;
+  nationality?: string;
+  passportPictureUrl?: string | null;
+  outstandingBalance?: number;
+};
+
+export type UpdateMemberInput = Partial<CreateMemberInput>;
 
 export const seedMembers: Member[] = [
   {
@@ -15,6 +33,7 @@ export const seedMembers: Member[] = [
     nationality: "Ghanaian",
     passportPictureUrl: "/images/members/ama.jpg",
     createdAt: "2025-08-01T09:00:00.000Z",
+    outstandingBalance: 0,
   },
   {
     id: "m2",
@@ -29,6 +48,7 @@ export const seedMembers: Member[] = [
     nationality: "Ghanaian",
     passportPictureUrl: "/images/members/kwame.jpg",
     createdAt: "2025-07-22T11:30:00.000Z",
+    outstandingBalance: 0,
   },
   {
     id: "m3",
@@ -43,6 +63,7 @@ export const seedMembers: Member[] = [
     nationality: "Ghanaian",
     passportPictureUrl: "/images/members/akosua.jpg",
     createdAt: "2025-06-15T14:45:00.000Z",
+    outstandingBalance: 0,
   },
   {
     id: "m4",
@@ -57,6 +78,7 @@ export const seedMembers: Member[] = [
     nationality: "Ghanaian",
     passportPictureUrl: null,
     createdAt: "2025-08-20T16:20:00.000Z",
+    outstandingBalance: 0,
   },
   {
     id: "m5",
@@ -71,6 +93,7 @@ export const seedMembers: Member[] = [
     nationality: "Ghanaian",
     passportPictureUrl: "/images/members/esi.jpg",
     createdAt: "2025-07-05T08:15:00.000Z",
+    outstandingBalance: 0,
   },
   {
     id: "m6",
@@ -85,13 +108,13 @@ export const seedMembers: Member[] = [
     nationality: "Ghanaian",
     passportPictureUrl: "/images/members/yaw.jpg",
     createdAt: "2025-08-10T10:05:00.000Z",
+    outstandingBalance: 0,
   },
 ];
 
 // --- In-memory DB ---
-let db: Member[] = [...seedMembers]; // start with seed data
+const db: Member[] = [...seedMembers];
 
-// --- CRUD helpers ---
 export function listMembers(): Member[] {
   return db.slice().sort((a, b) => b.createdAt.localeCompare(a.createdAt));
 }
@@ -100,21 +123,52 @@ export function getMember(id: string): Member | undefined {
   return db.find((m) => m.id === id);
 }
 
-export function createMember(input: Omit<Member, "id" | "createdAt">): Member {
+export function createMember(input: CreateMemberInput): Member {
   const id = `m${Math.random().toString(36).slice(2, 8)}`;
   const createdAt = new Date().toISOString();
-  const member: Member = { id, createdAt, ...input };
+
+  const member: Member = {
+    id,
+    createdAt,
+    firstName: input.firstName,
+    lastName: input.lastName,
+    email: input.email,
+    phone: input.phone,
+    level: input.level ?? null,
+    status: input.status ?? "PROSPECT",
+    residentialAddress: input.residentialAddress,
+    occupation: input.occupation,
+    nationality: input.nationality,
+    passportPictureUrl: input.passportPictureUrl ?? null,
+    outstandingBalance: input.outstandingBalance ?? 0,
+  };
+
   db.unshift(member);
   return member;
 }
 
 export function updateMember(
   id: string,
-  patch: Partial<Omit<Member, "id" | "createdAt">>
+  patch: UpdateMemberInput
 ): Member | undefined {
   const idx = db.findIndex((m) => m.id === id);
   if (idx === -1) return undefined;
-  db[idx] = { ...db[idx], ...patch };
+
+  const current = db[idx];
+  db[idx] = {
+    ...current,
+    ...patch,
+    // normalize fields that can be null/undefined
+    level: patch.level === undefined ? current.level : patch.level,
+    passportPictureUrl:
+      patch.passportPictureUrl === undefined
+        ? current.passportPictureUrl
+        : patch.passportPictureUrl,
+    outstandingBalance:
+      patch.outstandingBalance === undefined
+        ? current.outstandingBalance
+        : patch.outstandingBalance,
+  };
   return db[idx];
 }
 

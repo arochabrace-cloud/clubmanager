@@ -4,7 +4,6 @@ export const MEMBER_STATUS = [
   "ACTIVE",
   "SUSPENDED",
 ] as const;
-
 export type MemberStatus = (typeof MEMBER_STATUS)[number];
 
 export type Member = {
@@ -13,14 +12,15 @@ export type Member = {
   lastName: string;
   email: string;
   phone?: string;
-  level?: string | null; // Membership level
+  level?: string | null;
   status: MemberStatus;
+  outstandingBalance: number;
 
-  // New fields
-  residentialAddress: string;
+  // keep these OPTIONAL:
+  residentialAddress?: string;
   occupation?: string;
   nationality?: string;
-  passportPictureUrl?: string | null; // store URL/path to uploaded file
+  passportPictureUrl?: string | null;
 
   createdAt: string; // ISO
 };
