@@ -4,11 +4,12 @@ import type { Member } from "@/types/member";
 import { seedMembers } from "../_store"; // path note below
 
 // If TS can't infer, define a helper type for the context params
-type Context = { params: { id: string } };
+type Context = { params: Promise<{ id: string }> };
 
 // GET /api/members/:id
 export async function GET(_req: NextRequest, { params }: Context) {
-  const member = seedMembers.find((m) => m.id === params.id);
+  const { id } = await params;
+  const member = seedMembers.find((m) => m.id === id);
   if (!member) {
     return NextResponse.json({ error: "Member not found" }, { status: 404 });
   }
@@ -17,7 +18,8 @@ export async function GET(_req: NextRequest, { params }: Context) {
 
 // PATCH /api/members/:id
 export async function PATCH(req: NextRequest, { params }: Context) {
-  const idx = seedMembers.findIndex((m) => m.id === params.id);
+  const { id } = await params;
+  const idx = seedMembers.findIndex((m) => m.id === id);
   if (idx === -1) {
     return NextResponse.json({ error: "Member not found" }, { status: 404 });
   }
@@ -34,7 +36,8 @@ export async function PATCH(req: NextRequest, { params }: Context) {
 
 // DELETE /api/members/:id
 export async function DELETE(_req: NextRequest, { params }: Context) {
-  const idx = seedMembers.findIndex((m) => m.id === params.id);
+  const { id } = await params;
+  const idx = seedMembers.findIndex((m) => m.id === id);
   if (idx === -1) {
     return NextResponse.json({ error: "Member not found" }, { status: 404 });
   }
