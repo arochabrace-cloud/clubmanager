@@ -10,6 +10,8 @@ import {
   CalendarDays,
   User,
   LogIn,
+  Package,
+  WalletCards,
   LucideIcon,
 } from "lucide-react";
 import {
@@ -53,8 +55,12 @@ function SidebarNav({ role }: { role: AppRole }) {
         <nav className="space-y-1">
           <NavItem href="/dashboard" label="Dashboard" Icon={LayoutDashboard} />
           <NavItem href="/members" label="Members" Icon={Users} />
-          <NavItem href="/dues/plans" label="Dues Plans" Icon={PiggyBank} />
-          <NavItem href="/activities" label="Activities" Icon={CalendarDays} />
+          <NavItem href="/dues/plans" label="Dues Plans" Icon={Package} />
+          <NavItem
+            href="/dues/posting"
+            label="Access Dues"
+            Icon={WalletCards}
+          />
           <NavItem href="/reports" label="Reports" Icon={FileBarChart} />
         </nav>
       </>
