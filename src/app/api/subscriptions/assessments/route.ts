@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { assessments, createSubscriptionsForAssessment } from "../_store";
-import { DuesAssessment } from "@/types/subscription";
+import { DuesAssessment, TargetType } from "@/types/subscription";
 
 export async function GET() {
   return NextResponse.json({ data: assessments });
@@ -14,7 +14,7 @@ export async function POST(req: Request) {
     planId: body.planId!,
     planName: body.planName ?? "",
     period: body.period ?? "",
-    targetType: body.targetType as any,
+    targetType: (body.targetType as TargetType) ?? "LEVEL",
     targetLevel: body.targetLevel ?? null,
     memberIds: body.memberIds ?? [],
     createdAt: new Date().toISOString(),

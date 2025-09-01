@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { plans } from "../_store";
-import { SubscriptionPlan } from "@/types/subscription";
+import { BillingCycle, SubscriptionPlan } from "@/types/subscription";
 
 export async function GET() {
   return NextResponse.json({ data: plans });
@@ -15,7 +15,7 @@ export async function POST(req: Request) {
     code: body.code ?? id.toUpperCase(),
     amount: Number(body.amount ?? 0),
     currency: body.currency ?? "GHS",
-    billingCycle: (body.billingCycle as any) ?? "ONE_TIME",
+    billingCycle: (body.billingCycle as BillingCycle) ?? "ONE_TIME",
     active: body.active ?? true,
     createdAt: new Date().toISOString(),
   };

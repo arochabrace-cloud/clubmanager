@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import {
+  MemberSubscription,
   SubscriptionPlan,
   TARGET_TYPE,
   TargetType,
@@ -143,7 +144,7 @@ export default function PostingPage() {
             <Label>Target Type</Label>
             <Select
               value={targetType}
-              onValueChange={(v) => setTargetType(v as any)}
+              onValueChange={(v) => setTargetType(v as TargetType)}
             >
               <SelectTrigger>
                 <SelectValue />
@@ -223,7 +224,7 @@ export default function PostingPage() {
 }
 
 function RecentSubs() {
-  const [rows, setRows] = useState<any[]>([]);
+  const [rows, setRows] = useState<MemberSubscription[]>([]);
   useEffect(() => {
     fetch("/api/subscriptions/member-subscriptions")
       .then((r) => r.json())
