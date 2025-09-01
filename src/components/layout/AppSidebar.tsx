@@ -18,7 +18,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
+
 import type { AppRole } from "@/lib/getRole";
 
 function NavItem({
