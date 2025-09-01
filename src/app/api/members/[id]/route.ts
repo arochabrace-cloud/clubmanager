@@ -1,36 +1,44 @@
 // src/app/api/members/[id]/route.ts
-export const revalidate = 0;
-export const dynamic = "force-dynamic";
+import { NextRequest, NextResponse } from "next/server";
+import type { Member } from "@/types/member";
+import { seedMembers } from "../_store"; // path note below
 
-import { NextResponse } from "next/server";
-import {
-  getMember,
-  updateMember,
-  deleteMember,
-  type UpdateMemberInput,
-} from "../_store";
+// If TS can't infer, define a helper type for the context params
+type Context = { params: { id: string } };
 
-type RouteContext = { params: Record<string, string> };
-
-export async function GET(_req: Request, { params }: RouteContext) {
-  const id = params.id;
-  const m = getMember(id);
-  if (!m) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  return NextResponse.json({ data: m });
+// GET /api/members/:id
+export async function GET(_req: NextRequest, { params }: Context) {
+  const member = seedMembers.find((m) => m.id === params.id);
+  if (!member) {
+    return NextResponse.json({ error: "Member not found" }, { status: 404 });
+  }
+  return NextResponse.json({ data: member });
 }
 
-export async function PATCH(req: Request, { params }: RouteContext) {
-  const id = params.id;
-  const patch = (await req.json()) as UpdateMemberInput;
-  const updated = updateMember(id, patch);
-  if (!updated)
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+// PATCH /api/members/:id
+export async function PATCH(req: NextRequest, { params }: Context) {
+  const idx = seedMembers.findIndex((m) => m.id === params.id);
+  if (idx === -1) {
+    return NextResponse.json({ error: "Member not found" }, { status: 404 });
+  }
+
+  const updates = (await req.json()) as Partial<Member>;
+  // Never allow id/createdAt to be overwritten
+  const { id: _ignoreId, createdAt: _ignoreCreatedAt, ...safe } = updates;
+
+  const updated: Member = { ...seedMembers[idx], ...safe };
+  seedMembers[idx] = updated;
+
   return NextResponse.json({ data: updated });
 }
 
-export async function DELETE(_req: Request, { params }: RouteContext) {
-  const id = params.id;
-  const ok = deleteMember(id);
-  if (!ok) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  return NextResponse.json({ ok: true });
+// DELETE /api/members/:id
+export async function DELETE(_req: NextRequest, { params }: Context) {
+  const idx = seedMembers.findIndex((m) => m.id === params.id);
+  if (idx === -1) {
+    return NextResponse.json({ error: "Member not found" }, { status: 404 });
+  }
+  const removed = seedMembers[idx];
+  seedMembers.splice(idx, 1);
+  return NextResponse.json({ data: removed });
 }
