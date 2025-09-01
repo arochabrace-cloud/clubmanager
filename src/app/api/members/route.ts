@@ -5,19 +5,18 @@ import { NextResponse } from "next/server";
 import { listMembers, createMember, type CreateMemberInput } from "./_store";
 
 export async function GET() {
-  return NextResponse.json({ data: listMembers() });
+  const data = listMembers();
+  return NextResponse.json({ data });
 }
 
 export async function POST(req: Request) {
   const body = (await req.json()) as Partial<CreateMemberInput>;
-
   if (!body.firstName || !body.lastName || !body.email) {
     return NextResponse.json(
       { error: "Missing required fields" },
       { status: 400 }
     );
   }
-
   const created = createMember({
     firstName: body.firstName,
     lastName: body.lastName,
@@ -32,6 +31,5 @@ export async function POST(req: Request) {
     outstandingBalance:
       typeof body.outstandingBalance === "number" ? body.outstandingBalance : 0,
   });
-
   return NextResponse.json({ data: created }, { status: 201 });
 }

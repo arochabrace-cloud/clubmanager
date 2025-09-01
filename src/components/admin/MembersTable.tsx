@@ -9,24 +9,34 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import MemberForm, { MemberFormValues } from "./MemberForm";
+import MemberForm, { type MemberFormValues } from "./MemberForm";
 import type { Member } from "@/types/member";
 
+type ApiListResp = { data: Member[]; error?: string };
+
 async function apiList(): Promise<Member[]> {
-  const res = await fetch("/api/members", { cache: "no-store" });
-  const json = await res.json();
-  return json.data as Member[];
+  const res = await fetch("/api/members", {
+    method: "GET",
+    cache: "no-store",
+    headers: { Accept: "application/json" },
+    next: { revalidate: 0 },
+  });
+  if (!res.ok) throw new Error(`GET /api/members ${res.status}`);
+  const json = (await res.json()) as ApiListResp;
+  if (!json || !Array.isArray(json.data)) throw new Error("Invalid JSON shape");
+  return json.data;
 }
 
 async function apiCreate(values: MemberFormValues): Promise<Member> {
   const res = await fetch("/api/members", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    cache: "no-store",
     body: JSON.stringify(values),
   });
   if (!res.ok) throw new Error("create failed");
-  const json = await res.json();
-  return json.data as Member;
+  const json = (await res.json()) as { data: Member };
+  return json.data;
 }
 
 async function apiUpdate(
@@ -36,31 +46,42 @@ async function apiUpdate(
   const res = await fetch(`/api/members/${id}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
+    cache: "no-store",
     body: JSON.stringify(values),
   });
   if (!res.ok) throw new Error("update failed");
-  const json = await res.json();
-  return json.data as Member;
+  const json = (await res.json()) as { data: Member };
+  return json.data;
 }
 
 async function apiDelete(id: string): Promise<void> {
-  const res = await fetch(`/api/members/${id}`, { method: "DELETE" });
+  const res = await fetch(`/api/members/${id}`, {
+    method: "DELETE",
+    cache: "no-store",
+  });
   if (!res.ok) throw new Error("delete failed");
 }
 
 export default function MembersTable() {
   const [rows, setRows] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [editing, setEditing] = useState<Member | null>(null);
   const [search, setSearch] = useState("");
 
   async function load() {
-    setLoading(true);
-    const data = await apiList();
-    setRows(data);
-    setLoading(false);
+    try {
+      setErr(null);
+      setLoading(true);
+      const data = await apiList();
+      setRows(data);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : "Failed to load members");
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
@@ -102,6 +123,8 @@ export default function MembersTable() {
         />
       </div>
 
+      {err && <p className="text-sm text-red-600">Error: {err}</p>}
+
       <div className="overflow-x-auto border rounded-xl bg-white">
         <table className="min-w-full text-sm">
           <thead className="bg-gray-50 text-gray-600">
@@ -111,19 +134,20 @@ export default function MembersTable() {
               <th className="px-3 py-2 text-left font-medium">Phone</th>
               <th className="px-3 py-2 text-left font-medium">Level</th>
               <th className="px-3 py-2 text-left font-medium">Status</th>
+              <th className="px-3 py-2 text-right font-medium">Outstanding</th>
               <th className="px-3 py-2 text-right font-medium w-40">Actions</th>
             </tr>
           </thead>
           <tbody className="divide-y">
             {loading ? (
               <tr>
-                <td className="px-3 py-6" colSpan={6}>
+                <td className="px-3 py-6" colSpan={7}>
                   Loading…
                 </td>
               </tr>
             ) : filtered.length === 0 ? (
               <tr>
-                <td className="px-3 py-6" colSpan={6}>
+                <td className="px-3 py-6" colSpan={7}>
                   No members found.
                 </td>
               </tr>
@@ -140,6 +164,9 @@ export default function MembersTable() {
                     <span className="inline-flex items-center rounded-full bg-gray-100 px-2 py-0.5 text-xs">
                       {m.status}
                     </span>
+                  </td>
+                  <td className="px-3 py-2 text-right">
+                    GHS {m.outstandingBalance.toFixed(2)}
                   </td>
                   <td className="px-3 py-2 text-right">
                     <div className="flex justify-end gap-2">
