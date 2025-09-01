@@ -10,6 +10,7 @@ import {
   CalendarDays,
   User,
   LogIn,
+  LucideIcon,
 } from "lucide-react";
 import {
   Sheet,
@@ -28,7 +29,7 @@ function NavItem({
 }: {
   href: string;
   label: string;
-  Icon: any;
+  Icon: LucideIcon;
 }) {
   const pathname = usePathname();
   const active = pathname === href || pathname.startsWith(href + "/");

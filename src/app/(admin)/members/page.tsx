@@ -1,4 +1,3 @@
-import AppShell from "@/components/layout/AppShell";
 import MembersTable from "@/components/admin/MembersTable";
 import { getServerRole } from "@/lib/getRole";
 import { redirect } from "next/navigation";
