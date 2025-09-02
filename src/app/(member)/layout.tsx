@@ -1,26 +1,26 @@
-import AppTopbar from "@/components/layout/AppTopbar";
-import AppSidebar from "@/components/layout/AppSidebar";
-import Guard from "@/components/layout/Guard";
+// src/app/(admin)/layout.tsx  (SERVER component)
+import AppShell from "@/components/layout/AppShell";
+import { auth } from "@/auth";
+import { getServerRole } from "@/lib/getRole";
 
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const session = await auth(); // NextAuth v5 (server)
+  const role = await getServerRole(); // "ADMIN" | "MEMBER" | "GUEST"
+  const name = session?.user?.name ?? null;
+
+  // Optional: hard guard this entire group
+  if (role !== "MEMBER") {
+    // import { redirect } from "next/navigation";
+    // redirect("/dashboard");
+  }
+
   return (
-    <Guard allow={["ADMIN"]}>
-      <AppTopbar />
-      <div className="mx-auto max-w-7xl px-4 md:px-6">
-        <div className="flex gap-6 py-4 h-[calc(100dvh-3.5rem)] overflow-hidden">
-          <AppSidebar />
-          <main
-            id="main"
-            className="flex-1 h-full overflow-y-auto [scrollbar-gutter:stable]"
-          >
-            {children}
-          </main>
-        </div>
-      </div>
-    </Guard>
+    <AppShell role={role} name={name}>
+      {children}
+    </AppShell>
   );
 }

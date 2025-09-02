@@ -13,6 +13,8 @@ import {
   Package,
   WalletCards,
   LucideIcon,
+  UserPlus,
+  RefreshCcw,
   BanknoteArrowUp,
 } from "lucide-react";
 import {
@@ -67,7 +69,12 @@ function SidebarNav({ role }: { role: AppRole }) {
             label="Record Payment"
             Icon={BanknoteArrowUp}
           />
-          <NavItem href="/reports" label="Reports" Icon={FileBarChart} />
+          <NavItem
+            href="/reports/dashboard"
+            label="Reports"
+            Icon={FileBarChart}
+          />
+          <NavItem href="/users" label="Users" Icon={UserPlus} />
         </nav>
       </>
     );
@@ -79,8 +86,12 @@ function SidebarNav({ role }: { role: AppRole }) {
         <nav className="space-y-1">
           <NavItem href="/dashboard" label="Dashboard" Icon={LayoutDashboard} />
           <NavItem href="/statement" label="My Statement" Icon={PiggyBank} />
-          <NavItem href="/activities" label="Activities" Icon={CalendarDays} />
           <NavItem href="/profile" label="Profile" Icon={User} />
+          <NavItem
+            href="/profile/changepassword"
+            label="Change Password"
+            Icon={RefreshCcw}
+          />
         </nav>
       </>
     );

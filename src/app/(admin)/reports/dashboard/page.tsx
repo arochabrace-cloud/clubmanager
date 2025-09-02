@@ -30,28 +30,21 @@ const items: ReportLink[] = [
   {
     title: "Payments Report",
     description: "View and export recorded payments over a period.",
-    href: "#", // create this route
+    href: "/reports/payments", // create this route
     icon: Receipt,
   },
   {
     title: "Members List",
     description: "Browse, search, and export the full member list.",
-    href: "#",
+    href: "/reports/members",
     icon: Users,
   },
   {
     title: "Outstanding Balances",
     description:
       "See members with pending dues; filter by period or level and export.",
-    href: "#", // create this route
+    href: "/reports/outstanding", // create this route
     icon: AlertCircle,
-  },
-  {
-    title: "Statements & Analytics",
-    description:
-      "Summary dashboards, plan performance, collection ratios, and trends.",
-    href: "/admin/reports/analytics", // create this route
-    icon: BarChart3,
   },
 ];
 

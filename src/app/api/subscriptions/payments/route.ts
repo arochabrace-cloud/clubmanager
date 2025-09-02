@@ -7,16 +7,26 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const memberId = searchParams.get("memberId");
   const planId = searchParams.get("planId");
+  const from = searchParams.get("from"); // YYYY-MM-DD
+  const to = searchParams.get("to"); // YYYY-MM-DD
 
-  let data = payments
-    .slice()
-    .sort(
-      (a, b) =>
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
+  let data = payments.slice();
+
   if (memberId) data = data.filter((p) => p.memberId === memberId);
   if (planId) data = data.filter((p) => p.planId === planId);
 
+  if (from) {
+    const fromTs = new Date(from).getTime();
+    data = data.filter((p) => new Date(p.paidAt).getTime() >= fromTs);
+  }
+  if (to) {
+    const toTs = new Date(to).getTime();
+    data = data.filter((p) => new Date(p.paidAt).getTime() <= toTs);
+  }
+
+  data.sort(
+    (a, b) => new Date(b.paidAt).getTime() - new Date(a.paidAt).getTime()
+  );
   return NextResponse.json({ data });
 }
 
