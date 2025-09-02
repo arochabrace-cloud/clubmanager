@@ -218,8 +218,9 @@ export default function AdminMemberStatementPage() {
               )}
             </div>
             {memberId ? (
-              <div className="mt-1 text-xs">
-                Selected: {selectedMember?.firstName} {selectedMember?.lastName}
+              <div className="mt-1 text-2xl">
+                Selected Member: {selectedMember?.firstName}{" "}
+                {selectedMember?.lastName}
               </div>
             ) : null}
           </div>
@@ -265,7 +266,7 @@ export default function AdminMemberStatementPage() {
           </Button>
         </div>
       </div>
-
+      <hr></hr>
       {/* Printable area */}
       <div ref={printRef} className="bg-white print:bg-white border rounded-md">
         {!memberId ? (

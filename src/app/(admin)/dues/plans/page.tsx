@@ -17,7 +17,7 @@ import LoadingSpinner from "@/components/shared/LoadingSpinner";
 export default function PlansPage() {
   const [rows, setRows] = useState<SubscriptionPlan[]>([]);
   const [loading, setLoading] = useState(true);
-
+  const [emptyForm, setEmptyForm] = useState("");
   // form state
   const [form, setForm] = useState({
     name: "",
@@ -50,6 +50,7 @@ export default function PlansPage() {
       billingCycle: form.billingCycle,
       active: form.active === "true",
     };
+
     const r = await fetch("/api/subscriptions/plans", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -78,61 +79,68 @@ export default function PlansPage() {
       </div>
 
       {/* Create form */}
-      <form
-        onSubmit={createPlan}
-        className="grid grid-cols-1 md:grid-cols-6 gap-3 items-end"
-      >
-        <div className="md:col-span-2">
-          <Label>Name</Label>
-          <Input
-            value={form.name}
-            onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-            placeholder="Monthly Dues"
-          />
-        </div>
-        <div>
-          <Label>Code</Label>
-          <Input
-            value={form.code}
-            onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))}
-            placeholder="DUES-MONTH"
-          />
-        </div>
-        <div>
-          <Label>Amount (GHS)</Label>
-          <Input
-            type="number"
-            value={form.amount}
-            onChange={(e) => setForm((f) => ({ ...f, amount: e.target.value }))}
-          />
-        </div>
-        <div>
-          <Label>Billing Cycle</Label>
-          <Select
-            value={form.billingCycle}
-            onValueChange={(v) => setForm((f) => ({ ...f, billingCycle: v }))}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {BILLING_CYCLE.map((c) => (
-                <SelectItem key={c} value={c}>
-                  {c}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="flex gap-2">
-          <Button type="submit" className="w-full">
-            Add Plan
-          </Button>
-        </div>
-      </form>
-
+      <div className="border-2 rounded-md p-4">
+        <form
+          onSubmit={createPlan}
+          className="grid grid-cols-1 md:grid-cols-6 gap-3 items-end"
+        >
+          <div className="md:col-span-2">
+            <Label>Name</Label>
+            <Input
+              value={form.name}
+              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+              placeholder="Monthly Dues"
+            />
+          </div>
+          <div>
+            <Label>Code</Label>
+            <Input
+              value={form.code}
+              onChange={(e) => setForm((f) => ({ ...f, code: e.target.value }))}
+              placeholder="DUES-MONTH"
+            />
+          </div>
+          <div>
+            <Label>Amount (GHS)</Label>
+            <Input
+              type="number"
+              value={form.amount}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, amount: e.target.value }))
+              }
+            />
+          </div>
+          <div>
+            <Label>Billing Cycle</Label>
+            <Select
+              value={form.billingCycle}
+              onValueChange={(v) => setForm((f) => ({ ...f, billingCycle: v }))}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {BILLING_CYCLE.map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {c}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={!form.name || !form.code || !form.amount}
+            >
+              Add Plan
+            </Button>
+          </div>
+        </form>
+      </div>
       {/* Table */}
-      <div className="border rounded-md overflow-x-auto">
+      <div className="border-2 rounded-md overflow-x-auto">
         {loading ? (
           <div className="p-8 flex items-center justify-center">
             <LoadingSpinner />

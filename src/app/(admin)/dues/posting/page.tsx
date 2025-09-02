@@ -108,115 +108,115 @@ export default function PostingPage() {
           individuals for a given period.
         </p>
       </div>
-
-      <form onSubmit={submit} className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <Label>Plan</Label>
-            <Select value={planId} onValueChange={setPlanId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select plan" />
-              </SelectTrigger>
-              <SelectContent>
-                {plans.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {p.name} — {p.amount} {p.currency}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <Label>Period</Label>
-            {/* For monthly dues, use YYYY-MM (plain text keeps it flexible) */}
-            <Input
-              placeholder="2025-09"
-              value={period}
-              onChange={(e) => setPeriod(e.target.value)}
-            />
-            <p className="text-[11px] text-muted-foreground mt-1">
-              e.g., 2025-09 (monthly) or 2025 (yearly)
-            </p>
-          </div>
-
-          <div>
-            <Label>Target Type</Label>
-            <Select
-              value={targetType}
-              onValueChange={(v) => setTargetType(v as TargetType)}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {TARGET_TYPE.map((t) => (
-                  <SelectItem key={t} value={t}>
-                    {t}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        {targetType === "LEVEL" ? (
+      <div className="border-2 rounded-md p-4 overflow-x-auto">
+        <form onSubmit={submit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <Label>Membership Level</Label>
-              <Select value={targetLevel} onValueChange={setTargetLevel}>
+              <Label>Plan</Label>
+              <Select value={planId} onValueChange={setPlanId}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select level" />
+                  <SelectValue placeholder="Select plan" />
                 </SelectTrigger>
                 <SelectContent>
-                  {levels.map((l) => (
-                    <SelectItem key={l} value={l}>
-                      {l}
+                  {plans.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.name} — {p.amount} {p.currency}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
-            <div className="md:col-span-2 flex items-end">
-              <div className="text-sm text-muted-foreground">
-                <span className="font-medium">{targetsPreviewCount}</span>{" "}
-                member(s) will be assessed.
+
+            <div>
+              <Label>Period</Label>
+              {/* For monthly dues, use YYYY-MM (plain text keeps it flexible) */}
+              <Input
+                placeholder="2025-09"
+                value={period}
+                onChange={(e) => setPeriod(e.target.value)}
+              />
+              <p className="text-[11px] text-muted-foreground mt-1">
+                e.g., 2025-09 (monthly) or 2025 (yearly)
+              </p>
+            </div>
+
+            <div>
+              <Label>Target Type</Label>
+              <Select
+                value={targetType}
+                onValueChange={(v) => setTargetType(v as TargetType)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {TARGET_TYPE.map((t) => (
+                    <SelectItem key={t} value={t}>
+                      {t}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {targetType === "LEVEL" ? (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label>Membership Level</Label>
+                <Select value={targetLevel} onValueChange={setTargetLevel}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select level" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {levels.map((l) => (
+                      <SelectItem key={l} value={l}>
+                        {l}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="md:col-span-2 flex items-end">
+                <div className="text-sm text-muted-foreground">
+                  <span className="font-medium">{targetsPreviewCount}</span>{" "}
+                  member(s) will be assessed.
+                </div>
               </div>
             </div>
-          </div>
-        ) : (
-          <div>
-            <Label>Select Members (hold Ctrl/Cmd to multi-select)</Label>
-            <select
-              multiple
-              className="w-full border rounded-md p-2 h-48"
-              value={memberIds}
-              onChange={(e) =>
-                setMemberIds(
-                  Array.from(e.target.selectedOptions).map((o) => o.value)
-                )
-              }
-            >
-              {members.map((m) => (
-                <option key={m.id} value={m.id}>
-                  {m.firstName} {m.lastName} {m.level ? `— ${m.level}` : ""}
-                </option>
-              ))}
-            </select>
-            <div className="text-sm text-muted-foreground mt-2">
-              <span className="font-medium">{targetsPreviewCount}</span>{" "}
-              member(s) selected.
+          ) : (
+            <div>
+              <Label>Select Members (hold Ctrl/Cmd to multi-select)</Label>
+              <select
+                multiple
+                className="w-full border rounded-md p-2 h-48"
+                value={memberIds}
+                onChange={(e) =>
+                  setMemberIds(
+                    Array.from(e.target.selectedOptions).map((o) => o.value)
+                  )
+                }
+              >
+                {members.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.firstName} {m.lastName} {m.level ? `— ${m.level}` : ""}
+                  </option>
+                ))}
+              </select>
+              <div className="text-sm text-muted-foreground mt-2">
+                <span className="font-medium">{targetsPreviewCount}</span>{" "}
+                member(s) selected.
+              </div>
             </div>
+          )}
+
+          <div className="pt-2">
+            <Button type="submit" disabled={!planId || !period}>
+              Assess Dues
+            </Button>
           </div>
-        )}
-
-        <div className="pt-2">
-          <Button type="submit" disabled={!planId || !period}>
-            Assess Dues
-          </Button>
-        </div>
-      </form>
-
+        </form>
+      </div>
       {/* Optional: quick view of latest member subscriptions */}
       <RecentSubs />
     </div>

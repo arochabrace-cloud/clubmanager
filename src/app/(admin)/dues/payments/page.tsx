@@ -141,118 +141,122 @@ export default function AdminPaymentsPage() {
       </div>
 
       {/* Form */}
-      <form onSubmit={submit} className="space-y-4">
-        {/* Member search & select */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="md:col-span-2">
-            <Label>Search Member</Label>
-            <Input
-              placeholder="Type name, email, or level (e.g., 'Ama', 'Gold')"
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-            />
-            <div className="mt-2 border rounded-md max-h-56 overflow-auto">
-              {memberOptions.length === 0 ? (
-                <div className="p-3 text-sm text-muted-foreground">
-                  No members
-                </div>
-              ) : (
-                <ul className="text-sm">
-                  {memberOptions.map((m) => (
-                    <li
-                      key={m.id}
-                      className={`px-3 py-2 cursor-pointer hover:bg-accent ${
-                        memberId === m.id ? "bg-accent" : ""
-                      }`}
-                      onClick={() => setMemberId(m.id)}
-                    >
-                      {m.firstName} {m.lastName}
-                      {m.level ? (
-                        <span className="text-muted-foreground">
-                          {" "}
-                          — {m.level}
-                        </span>
-                      ) : null}
-                      <div className="text-xs text-muted-foreground">
-                        {m.email}
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-            {memberId ? (
-              <div className="mt-1 text-xs">
-                Selected:{" "}
-                {memberOptions.find((x) => x.id === memberId)?.firstName}{" "}
-                {memberOptions.find((x) => x.id === memberId)?.lastName}
+      <div className="border-2 rounded-md p-4 overflow-x-auto">
+        <form onSubmit={submit} className="space-y-4">
+          {/* Member search & select */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="md:col-span-2">
+              <Label>Search Member</Label>
+              <Input
+                placeholder="Type name, email, or level (e.g., 'Ama', 'Gold')"
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+              />
+              <div className="mt-2 border rounded-md max-h-56 overflow-auto">
+                {memberOptions.length === 0 ? (
+                  <div className="p-3 text-sm text-muted-foreground">
+                    No members
+                  </div>
+                ) : (
+                  <ul className="text-sm">
+                    {memberOptions.map((m) => (
+                      <li
+                        key={m.id}
+                        className={`px-3 py-2 cursor-pointer hover:bg-accent ${
+                          memberId === m.id ? "bg-accent" : ""
+                        }`}
+                        onClick={() => setMemberId(m.id)}
+                      >
+                        {m.firstName} {m.lastName}
+                        {m.level ? (
+                          <span className="text-muted-foreground">
+                            {" "}
+                            — {m.level}
+                          </span>
+                        ) : null}
+                        <div className="text-xs text-muted-foreground">
+                          {m.email}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
-            ) : null}
+              {memberId ? (
+                <div className="mt-1 text-2xl">
+                  Selected Member:{" "}
+                  {memberOptions.find((x) => x.id === memberId)?.firstName}{" "}
+                  {memberOptions.find((x) => x.id === memberId)?.lastName}
+                </div>
+              ) : null}
+            </div>
+
+            {/* Plan select */}
+            <div>
+              <Label>Type of Dues</Label>
+              <Select
+                value={planId || "unset"}
+                onValueChange={(v) => setPlanId(v === "unset" ? "" : v)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select plan" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="unset">— Select —</SelectItem>
+                  {plans.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.name} — {p.amount} {p.currency}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          {/* Plan select */}
-          <div>
-            <Label>Type of Dues</Label>
-            <Select
-              value={planId || "unset"}
-              onValueChange={(v) => setPlanId(v === "unset" ? "" : v)}
+          {/* Amount, date, reference */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <Label>Amount</Label>
+              <Input
+                type="number"
+                inputMode="decimal"
+                min="0"
+                step="0.01"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder={
+                  selectedPlan ? String(selectedPlan.amount) : "0.00"
+                }
+              />
+            </div>
+            <div>
+              <Label>Date Paid</Label>
+              <Input
+                type="date"
+                value={paidAt}
+                onChange={(e) => setPaidAt(e.target.value)}
+              />
+            </div>
+            <div className="md:col-span-2">
+              <Label>Reference (optional)</Label>
+              <Input
+                value={reference}
+                onChange={(e) => setReference(e.target.value)}
+                placeholder="Receipt / MoMo ref / Bank slip"
+              />
+            </div>
+          </div>
+
+          <div className="pt-2">
+            <Button
+              type="submit"
+              disabled={saving || !memberId || !planId || !amount || !paidAt}
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Select plan" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="unset">— Select —</SelectItem>
-                {plans.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {p.name} — {p.amount} {p.currency}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              {saving ? "Saving…" : "Save Payment"}
+            </Button>
           </div>
-        </div>
-
-        {/* Amount, date, reference */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div>
-            <Label>Amount</Label>
-            <Input
-              type="number"
-              inputMode="decimal"
-              min="0"
-              step="0.01"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder={selectedPlan ? String(selectedPlan.amount) : "0.00"}
-            />
-          </div>
-          <div>
-            <Label>Date Paid</Label>
-            <Input
-              type="date"
-              value={paidAt}
-              onChange={(e) => setPaidAt(e.target.value)}
-            />
-          </div>
-          <div className="md:col-span-2">
-            <Label>Reference (optional)</Label>
-            <Input
-              value={reference}
-              onChange={(e) => setReference(e.target.value)}
-              placeholder="Receipt / MoMo ref / Bank slip"
-            />
-          </div>
-        </div>
-
-        <div className="pt-2">
-          <Button
-            type="submit"
-            disabled={saving || !memberId || !planId || !amount || !paidAt}
-          >
-            {saving ? "Saving…" : "Save Payment"}
-          </Button>
-        </div>
-      </form>
+        </form>
+      </div>
 
       {/* Recent payments */}
       <section className="space-y-2">
