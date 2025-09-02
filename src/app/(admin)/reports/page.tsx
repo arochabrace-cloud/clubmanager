@@ -18,7 +18,6 @@ type ReportLink = {
   description: string;
   href: string;
   icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
-  action?: { label: string; href: string }[];
 };
 
 const items: ReportLink[] = [
@@ -27,21 +26,18 @@ const items: ReportLink[] = [
     description: "Generate, print, or export a member’s statement.",
     href: "/dues/statements",
     icon: FileText,
-    action: [{ label: "Open", href: "/dues/statements" }],
   },
   {
     title: "Payments Report",
     description: "View and export recorded payments over a period.",
     href: "#", // create this route
     icon: Receipt,
-    action: [{ label: "Open", href: "#" }],
   },
   {
     title: "Members List",
     description: "Browse, search, and export the full member list.",
     href: "#",
     icon: Users,
-    action: [{ label: "Open", href: "#" }],
   },
   {
     title: "Outstanding Balances",
@@ -49,7 +45,6 @@ const items: ReportLink[] = [
       "See members with pending dues; filter by period or level and export.",
     href: "#", // create this route
     icon: AlertCircle,
-    action: [{ label: "Open", href: "#" }],
   },
   {
     title: "Statements & Analytics",
@@ -57,7 +52,6 @@ const items: ReportLink[] = [
       "Summary dashboards, plan performance, collection ratios, and trends.",
     href: "/admin/reports/analytics", // create this route
     icon: BarChart3,
-    action: [{ label: "Open", href: "#" }],
   },
 ];
 
@@ -81,13 +75,7 @@ export default function ReportsMenuPage() {
   );
 }
 
-function ReportCard({
-  title,
-  description,
-  href,
-  icon: Icon,
-  action,
-}: ReportLink) {
+function ReportCard({ title, description, href, icon: Icon }: ReportLink) {
   return (
     <Link
       href={href}
@@ -105,19 +93,6 @@ function ReportCard({
             {description}
           </p>
         </div>
-      </div>
-
-      <div className="mt-4 flex flex-wrap items-center gap-2">
-        {action?.map((a) => (
-          <Button
-            key={a.label}
-            asChild
-            size="sm"
-            className="transition group-hover:translate-y-[-1px]"
-          >
-            <Link href={a.href}>{a.label}</Link>
-          </Button>
-        ))}
       </div>
     </Link>
   );
