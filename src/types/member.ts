@@ -4,15 +4,18 @@ export const MEMBER_STATUS = [
   "ACTIVE",
   "SUSPENDED",
 ] as const;
-export type MemberStatus = (typeof MEMBER_STATUS)[number];
 
+export const CATEGORY = ["GOLD", "SILVER", "BRONZE", "VIP"] as const;
+
+export type MemberStatus = (typeof MEMBER_STATUS)[number];
+export type MemberCategory = (typeof CATEGORY)[number];
 export type Member = {
   id: string;
   firstName: string;
   lastName: string;
   email: string;
   phone?: string;
-  level?: string | null;
+  level: MemberCategory;
   status: MemberStatus;
   outstandingBalance: number;
 

@@ -46,3 +46,16 @@ export type MemberSubscription = {
   assessmentId: string;
   createdAt: string;
 };
+
+export type Payment = {
+  id: string;
+  memberId: string;
+  memberName: string;
+  planId: string;
+  planName: string;
+  amount: number;
+  currency: string; // reuse plan currency
+  paidAt: string; // ISO date string "YYYY-MM-DD" or full ISO
+  reference?: string; // optional receipt/reference
+  createdAt: string; // ISO
+};

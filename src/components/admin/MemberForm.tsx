@@ -14,8 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Member, MemberStatus } from "@/types/member";
-import { MEMBER_STATUS } from "@/types/member";
+import { Member, MemberCategory, MemberStatus } from "@/types/member";
+import { MEMBER_STATUS, CATEGORY } from "@/types/member";
 
 // Optional: supply available membership levels from API/store
 type Level = { id: string; name: string };
@@ -26,7 +26,7 @@ const MemberSchema = z.object({
   email: z.string().email("Provide a valid email"),
   phone: z.string().optional(),
   // Membership Level (string id). Optional, but validated if present
-  level: z.string().optional().nullable(),
+  level: z.enum(CATEGORY),
   status: z.enum(MEMBER_STATUS),
 
   // New fields
@@ -73,7 +73,7 @@ export default function MemberForm({
       lastName: initial?.lastName ?? "",
       email: initial?.email ?? "",
       phone: initial?.phone ?? "",
-      level: (initial?.level as string) ?? "",
+      level: (initial?.level as MemberCategory) ?? "",
       status: (initial?.status as MemberStatus) ?? "PROSPECT",
       residentialAddress: initial?.residentialAddress ?? "",
       occupation: initial?.occupation ?? "",
@@ -93,7 +93,7 @@ export default function MemberForm({
       lastName: initial?.lastName ?? "",
       email: initial?.email ?? "",
       phone: initial?.phone ?? "",
-      level: (initial?.level as string) ?? "",
+      level: (initial?.level as MemberCategory) ?? "BEGINNER",
       status: (initial?.status as MemberStatus) ?? "PROSPECT",
       residentialAddress: initial?.residentialAddress ?? "",
       occupation: initial?.occupation ?? "",
@@ -208,34 +208,23 @@ export default function MemberForm({
 
         {/* Membership Level */}
         <div>
-          <Label>Membership Level</Label>
-          {levels && levels.length > 0 ? (
-            <Select
-              value={form.watch("level") ?? ""}
-              onValueChange={(v) =>
-                form.setValue("level", v, { shouldDirty: true })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select membership level" />
-              </SelectTrigger>
-              <SelectContent>
-                {levels.map((l) => (
-                  <SelectItem key={l.id} value={l.id}>
-                    {l.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          ) : (
-            <Input
-              {...form.register("level")}
-              placeholder="Enter membership level (e.g., Gold)"
-            />
-          )}
+          <Label>Member Category</Label>
+          <Select
+            value={form.watch("level")}
+            onValueChange={(v) => form.setValue("level", v as MemberCategory)}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select Category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="GOLD">GOLD</SelectItem>
+              <SelectItem value="SILVER">SILVER</SelectItem>
+              <SelectItem value="BRONZE">BRONZE</SelectItem>
+              <SelectItem value="BEGINNER">BEGINNER</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
-
       {/* Passport Picture */}
       <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4 items-end">
         <div>

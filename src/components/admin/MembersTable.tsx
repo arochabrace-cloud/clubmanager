@@ -201,7 +201,11 @@ export default function MembersTable() {
 
       {/* Create */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent
+          className="max-w-md"
+          onInteractOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>New Member</DialogTitle>
           </DialogHeader>
@@ -224,7 +228,11 @@ export default function MembersTable() {
           setEditOpen(v);
         }}
       >
-        <DialogContent className="max-w-md">
+        <DialogContent
+          className="max-w-md"
+          onInteractOutside={(e) => e.preventDefault()}
+          onEscapeKeyDown={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle>Edit Member</DialogTitle>
           </DialogHeader>

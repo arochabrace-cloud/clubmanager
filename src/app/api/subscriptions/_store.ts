@@ -2,6 +2,7 @@ import {
   SubscriptionPlan,
   DuesAssessment,
   MemberSubscription,
+  Payment,
 } from "@/types/subscription";
 import { seedMembers } from "@/app/api/members/_store";
 
@@ -69,4 +70,34 @@ export function createSubscriptionsForAssessment(a: DuesAssessment) {
       createdAt: now,
     });
   }
+}
+
+// existing exports: plans, assessments, memberSubscriptions, createSubscriptionsForAssessment...
+export const payments: Payment[] = [];
+// helper to mark a pending member subscription paid if it matches
+export function tryApplyPaymentToSubscription(args: {
+  memberId: string;
+  planId: string;
+  paidAt: string;
+  amount: number;
+}) {
+  // naive strategy: find the newest PENDING subscription for this member+plan
+  const candidates = memberSubscriptions
+    .filter(
+      (ms) =>
+        ms.memberId === args.memberId &&
+        ms.planId === args.planId &&
+        ms.status === "PENDING"
+    )
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+
+  if (candidates.length) {
+    // mark first match as PAID (you can extend with partial payments later)
+    candidates[0].status = "PAID";
+    return candidates[0].id;
+  }
+  return null;
 }

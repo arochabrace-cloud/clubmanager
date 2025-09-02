@@ -13,6 +13,7 @@ import {
   Package,
   WalletCards,
   LucideIcon,
+  BanknoteArrowUp,
 } from "lucide-react";
 import {
   Sheet,
@@ -60,6 +61,11 @@ function SidebarNav({ role }: { role: AppRole }) {
             href="/dues/posting"
             label="Access Dues"
             Icon={WalletCards}
+          />
+          <NavItem
+            href="/dues/payments"
+            label="Record Payment"
+            Icon={BanknoteArrowUp}
           />
           <NavItem href="/reports" label="Reports" Icon={FileBarChart} />
         </nav>
