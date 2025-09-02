@@ -44,7 +44,7 @@ export async function PATCH(req: Request) {
         ...memberSubscriptions[idx],
         status: body.status,
         // If you later add paidAt/reference in the type, set them here.
-      } as any;
+      };
       count++;
     }
   }
