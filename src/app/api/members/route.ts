@@ -39,7 +39,7 @@ export async function POST(req: Request) {
     lastName: body.lastName,
     email: body.email,
     phone: body.phone,
-    level: body.level ?? null,
+    level: body.level ?? "BEGINNER",
     status: body.status ?? "PROSPECT",
     residentialAddress: body.residentialAddress ?? "",
     occupation: body.occupation ?? "",
