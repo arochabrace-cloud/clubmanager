@@ -1,4 +1,4 @@
-import { Member, type MemberStatus } from "@/types/member";
+import { Member, type MemberCategory, type MemberStatus } from "@/types/member";
 
 // Inputs for API/store
 export type CreateMemberInput = {
@@ -6,7 +6,7 @@ export type CreateMemberInput = {
   lastName: string;
   email: string;
   phone?: string;
-  level?: string | null;
+  level?: MemberCategory;
   status?: MemberStatus;
   residentialAddress?: string;
   occupation?: string;
@@ -24,7 +24,7 @@ export const seedMembers: Member[] = [
     lastName: "Mensah",
     email: "ama.mensah@example.com",
     phone: "+233201111111",
-    level: "Bronze",
+    level: "BRONZE",
     status: "PENDING",
     residentialAddress: "123 Ring Road, Accra",
     occupation: "Student",
@@ -39,7 +39,7 @@ export const seedMembers: Member[] = [
     lastName: "Boateng",
     email: "kwame.boateng@example.com",
     phone: "+233202222222",
-    level: "Silver",
+    level: "SILVER",
     status: "ACTIVE",
     residentialAddress: "45 High Street, Kumasi",
     occupation: "Banker",
@@ -70,7 +70,7 @@ export function createMember(input: CreateMemberInput): Member {
     lastName: input.lastName,
     email: input.email,
     phone: input.phone,
-    level: input.level ?? null,
+    level: input.level ?? "BEGINNER",
     status: input.status ?? "PROSPECT",
     residentialAddress: input.residentialAddress,
     occupation: input.occupation,

@@ -5,7 +5,13 @@ export const MEMBER_STATUS = [
   "SUSPENDED",
 ] as const;
 
-export const CATEGORY = ["GOLD", "SILVER", "BRONZE", "VIP"] as const;
+export const CATEGORY = [
+  "GOLD",
+  "SILVER",
+  "BRONZE",
+  "VIP",
+  "BEGINNER",
+] as const;
 
 export type MemberStatus = (typeof MEMBER_STATUS)[number];
 export type MemberCategory = (typeof CATEGORY)[number];
