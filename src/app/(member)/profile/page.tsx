@@ -5,19 +5,41 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 
 type Member = {
+  // Auto-generated fields
   id: string;
+  membershipId?: string;
+  createdAt: string; // ISO
+  
+  // Required personal information
   firstName: string;
   lastName: string;
-  email: string;
+  dateOfBirth?: string;
+  gender?: string;
+  nationalId?: string;
   phone?: string;
+  residentialAddress?: string;
+  regionConstituencyElectoralArea?: string;
+  
+  // Optional personal information
+  email?: string;
+  occupation?: string;
+  highestEducationLevel?: string;
+  
+  // Membership details
+  membershipLevel?: string;
+  branchWard?: string;
+  recruitedBy?: string;
+  
+  // System fields
   level?: string | null;
   status: "PROSPECT" | "PENDING" | "ACTIVE" | "SUSPENDED";
-  residentialAddress?: string;
-  occupation?: string;
-  nationality?: string;
-  passportPictureUrl?: string | null;
   outstandingBalance?: number;
-  createdAt: string; // ISO
+  
+  // Attachments
+  passportPictureUrl?: string | null;
+  
+  // Legacy fields
+  nationality?: string;
 };
 
 export default function MemberProfilePage() {
@@ -105,13 +127,18 @@ export default function MemberProfilePage() {
             <StatusPill status={member.status} />
           </div>
           <div className="text-sm text-muted-foreground mt-1 flex flex-wrap gap-2">
+            {member.membershipLevel ? (
+              <span>
+                Membership: <b>{member.membershipLevel}</b>
+              </span>
+            ) : null}
             {member.level ? (
               <span>
-                Level: <b>{member.level}</b>
+                Category: <b>{member.level}</b>
               </span>
             ) : null}
             <span>
-              Member ID: <b>{member.id}</b>
+              Member ID: <b>{member.membershipId || member.id}</b>
             </span>
             <span>
               Joined: <b>{joined}</b>
@@ -128,26 +155,71 @@ export default function MemberProfilePage() {
         </div>
       </section>
 
-      {/* Contact info */}
+      {/* Personal Information */}
       <section className="border rounded-xl p-5">
-        <h3 className="font-semibold mb-3">Contact</h3>
+        <h3 className="font-semibold mb-3">Personal Information</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-          <Field label="Email" value={member.email} />
-          <Field label="Phone" value={member.phone || "-"} />
+          <Field label="Date of Birth" value={member.dateOfBirth ? new Date(member.dateOfBirth).toLocaleDateString() : "-"} />
+          <Field label="Gender" value={member.gender ? member.gender.charAt(0) + member.gender.slice(1).toLowerCase() : "-"} />
+          <Field label="National ID / Voter ID" value={member.nationalId || "-"} />
+          <Field label="Phone Number" value={member.phone || "-"} />
+          <Field label="Email Address" value={member.email || "-"} />
           <Field label="Nationality" value={member.nationality || "-"} />
         </div>
       </section>
 
-      {/* Personal / Address */}
+      {/* Address Information */}
       <section className="border rounded-xl p-5">
-        <h3 className="font-semibold mb-3">Personal Details</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-          <Field label="Occupation" value={member.occupation || "-"} />
+        <h3 className="font-semibold mb-3">Address & Location</h3>
+        <div className="grid grid-cols-1 gap-4 text-sm">
           <Field
-            className="md:col-span-2"
             label="Residential Address"
             value={member.residentialAddress || "-"}
           />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Field
+              label="Region / Constituency / Electoral Area"
+              value={member.regionConstituencyElectoralArea || "-"}
+            />
+            <Field label="Branch / Ward" value={member.branchWard || "-"} />
+          </div>
+        </div>
+      </section>
+
+      {/* Professional & Education */}
+      <section className="border rounded-xl p-5">
+        <h3 className="font-semibold mb-3">Professional & Educational Background</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <Field label="Occupation" value={member.occupation || "-"} />
+          <Field 
+            label="Highest Education Level" 
+            value={member.highestEducationLevel ? 
+              member.highestEducationLevel.charAt(0) + member.highestEducationLevel.slice(1).toLowerCase() : "-"} 
+          />
+        </div>
+      </section>
+
+      {/* Membership Details */}
+      <section className="border rounded-xl p-5">
+        <h3 className="font-semibold mb-3">Membership Details</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+          <Field 
+            label="Membership Level" 
+            value={member.membershipLevel ? 
+              member.membershipLevel.charAt(0) + member.membershipLevel.slice(1).toLowerCase() : "-"} 
+          />
+          <Field 
+            label="Member Category" 
+            value={member.level ? 
+              member.level.charAt(0) + member.level.slice(1).toLowerCase() : "-"} 
+          />
+          <Field 
+            label="Status" 
+            value={member.status.charAt(0) + member.status.slice(1).toLowerCase()} 
+          />
+          <Field label="Date of Registration" value={joined} />
+          <Field label="Recruited By" value={member.recruitedBy || "-"} />
+          <Field label="Outstanding Balance" value={`GHS ${outstanding}`} />
         </div>
       </section>
 

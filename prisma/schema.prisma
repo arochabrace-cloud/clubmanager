@@ -1,0 +1,127 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums matching our TypeScript types
+enum MemberStatus {
+  PROSPECT
+  PENDING
+  ACTIVE
+  SUSPENDED
+}
+
+enum MemberCategory {
+  GOLD
+  SILVER
+  BRONZE
+  VIP
+  BEGINNER
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum MembershipLevel {
+  ORDINARY
+  EXECUTIVE
+  DELEGATE
+  OTHER
+}
+
+enum EducationLevel {
+  PRIMARY
+  SECONDARY
+  TERTIARY
+  POSTGRADUATE
+  VOCATIONAL
+  OTHER
+}
+
+// Main Member model
+model Member {
+  // Auto-generated fields
+  id           String   @id @default(cuid())
+  membershipId String?  @unique // Auto-generated membership ID
+  createdAt    DateTime @default(now()) // Date of Registration
+  updatedAt    DateTime @updatedAt
+  
+  // Required personal information
+  firstName                      String
+  lastName                       String
+  dateOfBirth                    DateTime
+  gender                         Gender
+  nationalId                     String   @unique // National ID / Voter ID Number
+  phone                          String
+  residentialAddress             String
+  regionConstituencyElectoralArea String
+  
+  // Optional personal information
+  email                    String? @unique
+  occupation               String?
+  highestEducationLevel    EducationLevel?
+  
+  // Membership details
+  membershipLevel          MembershipLevel
+  branchWard               String?
+  recruitedBy              String? // Name or member ID of recruiter
+  
+  // System fields
+  level                    MemberCategory @default(BEGINNER) // For backward compatibility
+  status                   MemberStatus   @default(PROSPECT)
+  outstandingBalance       Float          @default(0)
+  
+  // Attachments
+  passportPictureUrl       String?
+  
+  // Legacy fields - keep for backward compatibility
+  nationality              String?
+  
+  // Relations
+  user                     User? // One-to-one relation with User
+  
+  // Indexes for better performance
+  @@index([email])
+  @@index([phone])
+  @@index([nationalId])
+  @@index([membershipId])
+  @@index([status])
+  @@index([membershipLevel])
+  @@map("members")
+}
+
+// Users table for authentication (if not using external auth)
+model User {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  email     String   @unique
+  password  String? // Hashed password
+  role      UserRole @default(MEMBER)
+  memberId  String?  @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relation to member (if this user represents a member)
+  member    Member?  @relation(fields: [memberId], references: [id], onDelete: SetNull)
+  
+  @@map("users")
+}
+
+enum UserRole {
+  ADMIN
+  MEMBER
+}
