@@ -32,6 +32,11 @@ export const seedMembers: Member[] = [
     passportPictureUrl: "/images/members/ama.jpg",
     outstandingBalance: 120.0,
     createdAt: "2025-08-01T09:00:00.000Z",
+    dateOfBirth: "",
+    gender: "",
+    nationalId: "",
+    regionConstituencyElectoralArea: "",
+    membershipLevel: "",
   },
   {
     id: "m2",
@@ -47,6 +52,11 @@ export const seedMembers: Member[] = [
     passportPictureUrl: "/images/members/kwame.jpg",
     outstandingBalance: 0.0,
     createdAt: "2025-07-22T11:30:00.000Z",
+    dateOfBirth: "",
+    gender: "",
+    nationalId: "",
+    regionConstituencyElectoralArea: "",
+    membershipLevel: "",
   },
   // ...keep the rest of your seeds...
 ];
