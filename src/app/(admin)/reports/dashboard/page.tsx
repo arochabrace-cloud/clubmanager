@@ -2,15 +2,11 @@
 
 import Link from "next/link";
 import { cn } from "@/lib/utils"; // if you have a cn helper; otherwise remove cn()
-import { Button } from "@/components/ui/button";
 import {
   FileText,
   Receipt,
   Users,
   AlertCircle,
-  BarChart3,
-  Printer,
-  FileDown,
 } from "lucide-react";
 
 type ReportLink = {

@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { useAuth } from "@/lib/auth";
+import { useSession } from "next-auth/react";
 import type { Role } from "@/lib/roles";
 
 export default function Guard({
@@ -10,8 +10,8 @@ export default function Guard({
   allow: Role[];
   children: React.ReactNode;
 }) {
-  const { session } = useAuth();
-  const role = session?.user?.role;
+  const { data: session } = useSession();
+  const role = session?.user && 'role' in session.user ? session.user.role : undefined;
   if (!role || !allow.includes(role)) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center p-6">

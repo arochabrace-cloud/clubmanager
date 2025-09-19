@@ -1,77 +1,38 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import MemberForm, { type MemberFormValues } from "./MemberForm";
 import type { Member } from "@/types/member";
 
-type ApiListResp = { data: Member[]; error?: string };
-
-async function apiList(): Promise<Member[]> {
-  const res = await fetch("/api/members", {
-    method: "GET",
-    cache: "no-store",
-    headers: { Accept: "application/json" },
-    next: { revalidate: 0 },
-  });
-  if (!res.ok) throw new Error(`GET /api/members ${res.status}`);
-  const json = (await res.json()) as ApiListResp;
-  if (!json || !Array.isArray(json.data)) throw new Error("Invalid JSON shape");
-  return json.data;
-}
-
-async function apiCreate(values: MemberFormValues): Promise<Member> {
-  const res = await fetch("/api/members", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    cache: "no-store",
-    body: JSON.stringify(values),
-  });
-  if (!res.ok) throw new Error("create failed");
-  const json = (await res.json()) as { data: Member };
-  return json.data;
-}
-
-async function apiUpdate(
-  id: string,
-  values: Partial<MemberFormValues>
-): Promise<Member> {
-  const res = await fetch(`/api/members/${id}`, {
-    method: "PATCH",
-    headers: { "Content-Type": "application/json" },
-    cache: "no-store",
-    body: JSON.stringify(values),
-  });
-  if (!res.ok) throw new Error("update failed");
-  const json = (await res.json()) as { data: Member };
-  return json.data;
-}
-
-async function apiDelete(id: string): Promise<void> {
-  const res = await fetch(`/api/members/${id}`, {
-    method: "DELETE",
-    cache: "no-store",
-  });
-  if (!res.ok) throw new Error("delete failed");
-}
-
 export default function MembersTable() {
+  const router = useRouter();
+
   const [rows, setRows] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
-  const [createOpen, setCreateOpen] = useState(false);
-  const [editOpen, setEditOpen] = useState(false);
-  const [editing, setEditing] = useState<Member | null>(null);
   const [search, setSearch] = useState("");
 
-  async function load() {
+  async function apiList(): Promise<Member[]> {
+    const res = await fetch("/api/members", {
+      cache: "no-store",
+      headers: { Accept: "application/json" },
+    });
+    if (!res.ok) throw new Error(`GET /api/members ${res.status}`);
+    const json = (await res.json()) as { data: Member[] };
+    return json.data;
+  }
+  async function apiDelete(id: string) {
+    const res = await fetch(`/api/members/${id}`, {
+      method: "DELETE",
+      cache: "no-store",
+    });
+    if (!res.ok) throw new Error("delete failed");
+  }
+
+  const load = useCallback(async () => {
     try {
       setErr(null);
       setLoading(true);
@@ -82,11 +43,11 @@ export default function MembersTable() {
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
   useEffect(() => {
     load();
-  }, []);
+  }, [load]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -107,7 +68,7 @@ export default function MembersTable() {
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2">
         <h1 className="text-xl font-semibold">Members</h1>
-        <Button onClick={() => setCreateOpen(true)}>New Member</Button>
+        <Button onClick={() => router.push("/members/new")}>New Member</Button>
       </div>
 
       <div className="flex items-center gap-2">
@@ -168,15 +129,12 @@ export default function MembersTable() {
                   <td className="px-3 py-2 text-right">
                     GHS {m.outstandingBalance.toFixed(2)}
                   </td>
-                  <td className="px-3 py-2 text-right">
+                  <td className="px-3 py-2">
                     <div className="flex justify-end gap-2">
                       <Button
                         variant="secondary"
                         size="sm"
-                        onClick={() => {
-                          setEditing(m);
-                          setEditOpen(true);
-                        }}
+                        onClick={() => router.push(`members/${m.id}/edit`)}
                       >
                         Edit
                       </Button>
@@ -184,6 +142,7 @@ export default function MembersTable() {
                         variant="destructive"
                         size="sm"
                         onClick={async () => {
+                          if (!confirm("Delete this member?")) return;
                           await apiDelete(m.id);
                           await load();
                         }}
@@ -198,57 +157,6 @@ export default function MembersTable() {
           </tbody>
         </table>
       </div>
-
-      {/* Create */}
-      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent
-          className="max-w-md"
-          onInteractOutside={(e) => e.preventDefault()}
-          onEscapeKeyDown={(e) => e.preventDefault()}
-        >
-          <DialogHeader>
-            <DialogTitle>New Member</DialogTitle>
-          </DialogHeader>
-          <MemberForm
-            submitting={false}
-            onSubmit={async (values) => {
-              await apiCreate(values);
-              setCreateOpen(false);
-              await load();
-            }}
-          />
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit */}
-      <Dialog
-        open={editOpen}
-        onOpenChange={(v) => {
-          if (!v) setEditing(null);
-          setEditOpen(v);
-        }}
-      >
-        <DialogContent
-          className="max-w-md"
-          onInteractOutside={(e) => e.preventDefault()}
-          onEscapeKeyDown={(e) => e.preventDefault()}
-        >
-          <DialogHeader>
-            <DialogTitle>Edit Member</DialogTitle>
-          </DialogHeader>
-          <MemberForm
-            initial={editing ?? undefined}
-            submitting={false}
-            onSubmit={async (values) => {
-              if (!editing) return;
-              await apiUpdate(editing.id, values);
-              setEditOpen(false);
-              setEditing(null);
-              await load();
-            }}
-          />
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

@@ -1,10 +1,22 @@
+// app/page.tsx
 "use client";
+
 import Link from "next/link";
-import { useAuth } from "@/lib/auth";
+import { useSession } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 
 export default function Home() {
-  const { session, loginAs } = useAuth();
+  const { data: session, status } = useSession();
+
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen grid place-items-center p-6">
+        <div className="text-sm text-muted-foreground">Loading…</div>
+      </div>
+    );
+  }
+
+  // Not signed in → show sign-in
   if (!session) {
     return (
       <div className="min-h-screen grid place-items-center p-6">
@@ -12,40 +24,41 @@ export default function Home() {
           <h1 className="text-lg font-semibold">
             Welcome to MembershipManager
           </h1>
-          <p className="text-sm text-gray-600">
-            Choose a demo role to continue:
-          </p>
-          <div className="flex gap-2">
-            <Button className="flex-1" onClick={() => loginAs("ADMIN")}>
-              Admin
-            </Button>
-            <Button
-              variant="secondary"
-              className="flex-1"
-              onClick={() => loginAs("MEMBER")}
-            >
-              Member
-            </Button>
-          </div>
-          <p className="text-xs text-gray-500">
-            Or{" "}
-            <Link className="text-blue-600" href="/login">
-              go to login
-            </Link>
+          <p className="text-sm text-gray-600">Please sign in to continue.</p>
+          <Link href="/login">
+            <Button className="w-full">Sign in</Button>
+          </Link>
+          <p className="text-[11px] text-gray-500">
+            Don’t have an account? Ask an admin to create one.
           </p>
         </div>
       </div>
     );
   }
-  const isAdmin = session.user?.role === "ADMIN";
+
+  // Signed in → route by role
+  const role = session.user && 'role' in session.user ? session.user.role as "ADMIN" | "MEMBER" | undefined : undefined;
+  const dashboardHref = role === "ADMIN" ? "/admin" : "/member";
+
   return (
-    <div className="p-6">
-      <Link
-        className="text-blue-600 underline"
-        href={isAdmin ? "/dashboard" : "/(member)/dashboard"}
-      >
-        Open Dashboard
-      </Link>
+    <div className="min-h-screen grid place-items-center p-6">
+      <div className="bg-white border rounded-2xl p-6 max-w-sm w-full text-center space-y-3">
+        <h1 className="text-lg font-semibold">Welcome back</h1>
+        <p className="text-sm text-gray-600">
+          Signed in as <b>{session.user?.email ?? session.user?.name}</b>
+        </p>
+        <Link href={dashboardHref}>
+          <Button className="w-full">
+            Open {role === "ADMIN" ? "Admin" : "Member"} Dashboard
+          </Button>
+        </Link>
+        <p className="text-[11px] text-gray-500">
+          Not you?{" "}
+          <Link className="text-blue-600" href="/login">
+            Switch account
+          </Link>
+        </p>
+      </div>
     </div>
   );
 }

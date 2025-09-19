@@ -12,175 +12,175 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 
-type Member = {
+type UserRow = {
   id: string;
-  firstName: string;
-  lastName: string;
   email: string;
-  level?: string | null;
-};
-
-type User = {
-  id: string;
   username: string;
-  email: string;
   role: "ADMIN" | "MEMBER";
   memberId?: string | null;
   createdAt: string;
+  updatedAt: string;
+  member?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email?: string | null;
+  } | null;
 };
 
-export default function AdminUsersPage() {
-  // Create form state
-  const [useMember, setUseMember] = useState<"YES" | "NO">("NO");
-  const [memberQ, setMemberQ] = useState("");
-  const [memberOptions, setMemberOptions] = useState<Member[]>([]);
+type MemberLite = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email?: string | null;
+};
+
+export default function UsersAdminPage() {
+  // listing state
+  const [users, setUsers] = useState<UserRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState<string | null>(null);
+  const [q, setQ] = useState("");
+
+  // create form state
+  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
+  const [role, setRole] = useState<"ADMIN" | "MEMBER">("MEMBER");
+  const [password, setPassword] = useState("ChangeMe123!");
+  const [memberQuery, setMemberQuery] = useState("");
+  const [memberOptions, setMemberOptions] = useState<MemberLite[]>([]);
   const [memberId, setMemberId] = useState<string>("");
 
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [role, setRole] = useState<"ADMIN" | "MEMBER">("MEMBER");
-  const [password, setPassword] = useState("ChangeMe123!"); // default, editable
+  async function loadUsers() {
+    try {
+      setErr(null);
+      setLoading(true);
+      const r = await fetch("/api/users", { cache: "no-store" });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j.error || "Failed to load users");
+      setUsers(j.data as UserRow[]);
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : 'Unknown error');
+    } finally {
+      setLoading(false);
+    }
+  }
 
-  const [saving, setSaving] = useState(false);
-
-  // Users list
-  const [rows, setRows] = useState<User[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  // Password edit inline
-  const [pwEdit, setPwEdit] = useState<Record<string, string>>({}); // per-user password value
-  const [pwSaving, setPwSaving] = useState<Record<string, boolean>>({});
-
-  // Load users
-  const loadUsers = async () => {
-    setLoading(true);
-    const r = await fetch("/api/users");
-    const j = await r.json();
-    setRows(j.data as User[]);
-    setLoading(false);
-  };
   useEffect(() => {
     loadUsers();
   }, []);
 
-  // Member search (when useMember = YES)
+  // member search (debounced)
   useEffect(() => {
-    if (useMember !== "YES") return;
     const t = setTimeout(async () => {
-      const url = memberQ.trim()
-        ? `/api/members?q=${encodeURIComponent(memberQ.trim())}`
-        : "/api/members";
-      const r = await fetch(url);
-      const j = await r.json();
-      setMemberOptions(j.data as Member[]);
+      const url = memberQuery.trim()
+        ? `/api/members?q=${encodeURIComponent(memberQuery.trim())}&limit=20`
+        : `/api/members?limit=20`;
+      try {
+        const r = await fetch(url, { cache: "no-store" });
+        const j = await r.json();
+        if (r.ok) {
+          const list = (j.data as Array<{ id: string; firstName: string; lastName: string; email?: string | null }>).map((m) => ({
+            id: m.id,
+            firstName: m.firstName,
+            lastName: m.lastName,
+            email: m.email ?? null,
+          })) as MemberLite[];
+          setMemberOptions(list);
+        }
+      } catch {
+        /* ignore */
+      }
     }, 250);
     return () => clearTimeout(t);
-  }, [useMember, memberQ]);
+  }, [memberQuery]);
 
-  // If member is selected, suggest username/email
-  const selectedMember = useMemo(
-    () => memberOptions.find((m) => m.id === memberId) ?? null,
-    [memberOptions, memberId]
-  );
-  useEffect(() => {
-    if (useMember === "YES" && selectedMember) {
-      const suggestedUsername =
-        selectedMember.email ||
-        `${selectedMember.firstName}.${selectedMember.lastName}`.toLowerCase();
-      setUsername(suggestedUsername);
-      setEmail(selectedMember.email);
-    }
-  }, [useMember, selectedMember]);
+  const filtered = useMemo(() => {
+    const s = q.trim().toLowerCase();
+    if (!s) return users;
+    return users.filter((u) =>
+      [
+        u.username,
+        u.email,
+        u.role,
+        u.member?.firstName ?? "",
+        u.member?.lastName ?? "",
+        u.member?.email ?? "",
+      ]
+        .filter(Boolean)
+        .some((v) => v!.toLowerCase().includes(s))
+    );
+  }, [users, q]);
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!username || !email || !role) return;
-    setSaving(true);
-
-    const body = {
-      username,
-      email,
+  async function createUser() {
+    const payload = {
+      email: email.trim(),
+      username: username.trim(),
       role,
-      memberId: useMember === "YES" ? memberId || null : null,
-      password: password || "ChangeMe123!",
+      memberId: memberId || null,
+      password: password.trim(),
     };
-
     const r = await fetch("/api/users", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
+      body: JSON.stringify(payload),
     });
-
-    setSaving(false);
-
-    if (r.ok) {
-      // reset form
-      setUseMember("NO");
-      setMemberQ("");
-      setMemberId("");
-      setUsername("");
-      setEmail("");
-      setRole("MEMBER");
-      setPassword("ChangeMe123!");
-      loadUsers();
-      alert("User created.");
-    } else {
-      const j = await r.json();
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) {
       alert(j.error || "Failed to create user");
-    }
-  };
-
-  const changePassword = async (userId: string) => {
-    const newPw = pwEdit[userId]?.trim();
-    if (!newPw || newPw.length < 6) {
-      alert("Password must be at least 6 characters");
       return;
     }
-    setPwSaving((s) => ({ ...s, [userId]: true }));
-    const r = await fetch(`/api/users/${userId}/password`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password: newPw }),
-    });
-    setPwSaving((s) => ({ ...s, [userId]: false }));
-    if (r.ok) {
-      setPwEdit((s) => ({ ...s, [userId]: "" }));
-      alert("Password updated.");
-    } else {
-      const j = await r.json();
-      alert(j.error || "Failed to update password");
+    // reset + reload
+    setEmail("");
+    setUsername("");
+    setRole("MEMBER");
+    setPassword("ChangeMe123!");
+    setMemberId("");
+    setMemberQuery("");
+    await loadUsers();
+  }
+
+  async function removeUser(id: string) {
+    if (!confirm("Delete this user?")) return;
+    const r = await fetch(`/api/users/${id}`, { method: "DELETE" });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) {
+      alert(j.error || "Failed to delete user");
+      return;
     }
-  };
+    await loadUsers();
+  }
 
   return (
     <div className="space-y-6">
       <header>
         <h1 className="text-xl font-semibold">Users</h1>
         <p className="text-sm text-muted-foreground">
-          Create admin or member users (linked to a member or standalone). Set
-          or edit default passwords.
+          Create and manage application users. Link a user to a Member for
+          member self-service.
         </p>
       </header>
 
-      {/* Create User Form */}
-      <form onSubmit={submit} className="space-y-4 border rounded-md p-4">
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-3">
+      {/* Create form */}
+      <section className="border rounded-md p-4 space-y-3">
+        <h2 className="font-semibold">Create User</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div>
-            <Label>Existing member</Label>
-            <Select
-              value={useMember}
-              onValueChange={(v) => setUseMember(v as "YES" | "NO")}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="NO">Non Member</SelectItem>
-                <SelectItem value="YES">Member</SelectItem>
-              </SelectContent>
-            </Select>
+            <Label>Email</Label>
+            <Input
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="user@example.com"
+            />
           </div>
-
+          <div>
+            <Label>Username</Label>
+            <Input
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="e.g., kwame"
+            />
+          </div>
           <div>
             <Label>Role</Label>
             <Select
@@ -188,7 +188,7 @@ export default function AdminUsersPage() {
               onValueChange={(v) => setRole(v as "ADMIN" | "MEMBER")}
             >
               <SelectTrigger>
-                <SelectValue />
+                <SelectValue placeholder="Select role" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="MEMBER">MEMBER</SelectItem>
@@ -197,26 +197,7 @@ export default function AdminUsersPage() {
             </Select>
           </div>
 
-          <div className="md:col-span-2">
-            <Label>Username</Label>
-            <Input
-              placeholder="e.g., email or handle"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-            />
-          </div>
-
-          <div className="md:col-span-2">
-            <Label>Email</Label>
-            <Input
-              type="email"
-              placeholder="user@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-          </div>
-
-          <div className="md:col-span-3">
+          <div>
             <Label>Default Password</Label>
             <Input
               type="text"
@@ -225,35 +206,33 @@ export default function AdminUsersPage() {
               placeholder="ChangeMe123!"
             />
             <p className="text-[11px] text-muted-foreground mt-1">
-              You can set a default here. It can be edited later below.
+              Will be hashed on the server. Ask user to change after first
+              login.
             </p>
           </div>
-        </div>
 
-        {useMember === "YES" && (
-          <div className="space-y-2">
-            <Label>Select member to link</Label>
+          <div className="md:col-span-2">
+            <Label>Link to Member (optional)</Label>
             <Input
-              placeholder="Search by name, email, or level"
-              value={memberQ}
-              onChange={(e) => setMemberQ(e.target.value)}
+              placeholder="Search by name or email…"
+              value={memberQuery}
+              onChange={(e) => setMemberQuery(e.target.value)}
             />
-            <div className="mt-2 border rounded-md max-h-48 overflow-auto">
-              {memberOptions.length === 0 ? (
-                <div className="p-2 text-xs text-muted-foreground">
-                  No members
-                </div>
-              ) : (
-                <ul className="text-sm">
-                  <li
-                    className={`px-3 py-2 cursor-pointer hover:bg-accent ${
-                      memberId === "" ? "bg-accent" : ""
-                    }`}
-                    onClick={() => setMemberId("")}
-                  >
-                    — None —
-                  </li>
-                  {memberOptions.map((m) => (
+            <div className="mt-2 border rounded max-h-40 overflow-auto">
+              <ul className="text-sm">
+                <li
+                  className={`px-3 py-2 cursor-pointer hover:bg-accent ${
+                    !memberId ? "bg-accent" : ""
+                  }`}
+                  onClick={() => setMemberId("")}
+                >
+                  No linkage
+                </li>
+                {memberOptions.map((m) => {
+                  const label = `${m.firstName} ${m.lastName} ${
+                    m.email ? `— ${m.email}` : ""
+                  }`;
+                  return (
                     <li
                       key={m.id}
                       className={`px-3 py-2 cursor-pointer hover:bg-accent ${
@@ -261,99 +240,93 @@ export default function AdminUsersPage() {
                       }`}
                       onClick={() => setMemberId(m.id)}
                     >
-                      {m.firstName} {m.lastName}
-                      {m.level ? (
-                        <span className="text-muted-foreground">
-                          {" "}
-                          — {m.level}
-                        </span>
-                      ) : null}
-                      <div className="text-xs text-muted-foreground">
-                        {m.email}
-                      </div>
+                      {label}
                     </li>
-                  ))}
-                </ul>
-              )}
-            </div>
-            <div className="mt-1 text-xs text-muted-foreground">
-              {memberId ? (
-                <>
-                  Selected:{" "}
-                  <b>
-                    {selectedMember?.firstName} {selectedMember?.lastName}
-                  </b>{" "}
-                  &middot; {selectedMember?.email}
-                </>
-              ) : (
-                <>
-                  Selected: <b>None</b>
-                </>
-              )}
+                  );
+                })}
+              </ul>
             </div>
           </div>
-        )}
+        </div>
 
-        <div className="pt-2">
-          <Button type="submit" disabled={saving}>
-            {saving ? "Creating…" : "Create User"}
+        <div className="pt-1">
+          <Button
+            onClick={createUser}
+            disabled={!email.trim() || !username.trim() || !password.trim()}
+          >
+            Create User
           </Button>
         </div>
-      </form>
+      </section>
 
-      {/* Users table */}
-      <section className="border rounded-md overflow-x-auto">
-        {loading ? (
-          <div className="p-6">Loading…</div>
-        ) : rows.length === 0 ? (
-          <div className="p-6 text-sm text-muted-foreground">No users yet.</div>
-        ) : (
+      {/* List + search */}
+      <section className="space-y-3">
+        <div className="flex items-center gap-2">
+          <Label>Search</Label>
+          <Input
+            className="max-w-xs"
+            placeholder="username, email, role or member…"
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+          />
+        </div>
+
+        {err && <div className="text-sm text-rose-600">Error: {err}</div>}
+
+        <div className="overflow-x-auto border rounded-md">
           <table className="min-w-full text-sm">
             <thead className="bg-muted/50">
               <tr>
-                <th className="text-left p-3">Username</th>
-                <th className="text-left p-3">Email</th>
-                <th className="text-left p-3">Role</th>
-                <th className="text-left p-3">Member</th>
-                <th className="text-left p-3">Created</th>
-                <th className="text-left p-3">Change Password</th>
+                <th className="text-left p-2">Username</th>
+                <th className="text-left p-2">Email</th>
+                <th className="text-left p-2">Role</th>
+                <th className="text-left p-2">Linked Member</th>
+                <th className="text-left p-2">Created</th>
+                <th className="text-right p-2 w-36">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {rows.map((u) => (
-                <tr key={u.id} className="border-t">
-                  <td className="p-3">{u.username}</td>
-                  <td className="p-3">{u.email}</td>
-                  <td className="p-3">{u.role}</td>
-                  <td className="p-3">{u.memberId ?? "-"}</td>
-                  <td className="p-3">
-                    {new Date(u.createdAt).toLocaleString()}
-                  </td>
-                  <td className="p-3">
-                    <div className="flex gap-2">
-                      <Input
-                        type="text"
-                        placeholder="New password"
-                        value={pwEdit[u.id] ?? ""}
-                        onChange={(e) =>
-                          setPwEdit((s) => ({ ...s, [u.id]: e.target.value }))
-                        }
-                        className="max-w-[200px]"
-                      />
-                      <Button
-                        size="sm"
-                        onClick={() => changePassword(u.id)}
-                        disabled={pwSaving[u.id]}
-                      >
-                        {pwSaving[u.id] ? "Saving…" : "Update"}
-                      </Button>
-                    </div>
+              {loading ? (
+                <tr>
+                  <td className="p-4" colSpan={6}>
+                    Loading…
                   </td>
                 </tr>
-              ))}
+              ) : filtered.length === 0 ? (
+                <tr>
+                  <td className="p-4" colSpan={6}>
+                    No users.
+                  </td>
+                </tr>
+              ) : (
+                filtered.map((u) => (
+                  <tr key={u.id} className="border-t">
+                    <td className="p-2">{u.username}</td>
+                    <td className="p-2">{u.email}</td>
+                    <td className="p-2">{u.role}</td>
+                    <td className="p-2">
+                      {u.member
+                        ? `${u.member.firstName} ${u.member.lastName}`
+                        : "—"}
+                    </td>
+                    <td className="p-2">
+                      {new Date(u.createdAt).toLocaleString()}
+                    </td>
+                    <td className="p-2 text-right">
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => removeUser(u.id)}
+                      >
+                        Delete
+                      </Button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
-        )}
+        </div>
       </section>
     </div>
   );

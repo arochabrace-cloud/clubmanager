@@ -7,7 +7,6 @@ import {
   Users,
   PiggyBank,
   FileBarChart,
-  CalendarDays,
   User,
   LogIn,
   Package,

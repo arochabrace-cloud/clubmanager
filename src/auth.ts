@@ -1,85 +1,85 @@
+// src/auth.ts
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import type { DefaultSession, User as NextAuthUser } from "next-auth";
-import type { JWT } from "next-auth/jwt";
+import { PrismaAdapter } from "@auth/prisma-adapter";
+import { prisma } from "@/lib/prisma";
+import { compare } from "bcrypt";
+import { z } from "zod";
 
-type Role = "ADMIN" | "MEMBER" | "GUEST";
+type Role = "ADMIN" | "MEMBER";
 
-type AppUser = NextAuthUser & { role: Role };
-type TokenWithRole = JWT & { role?: Role };
-type SessionWithRole = DefaultSession & {
-  user?: DefaultSession["user"] & { role?: Role };
-};
-
-const demoUsers: Record<
-  string,
-  { id: string; name: string; email: string; role: Role; password: string }
-> = {
-  "admin@example.com": {
-    id: "1",
-    name: "Admin",
-    email: "admin@example.com",
-    role: "ADMIN",
-    password: "admin123",
-  },
-  "member@example.com": {
-    id: "2",
-    name: "Member",
-    email: "member@example.com",
-    role: "MEMBER",
-    password: "member123",
-  },
-  "guest@example.com": {
-    id: "3",
-    name: "Guest",
-    email: "guest@example.com",
-    role: "GUEST",
-    password: "guest123",
-  },
-};
+const CredsSchema = z.object({
+  // allow login by email OR username
+  usernameOrEmail: z.string().min(1),
+  password: z.string().min(1),
+});
 
 export const { auth, signIn, signOut, handlers } = NextAuth({
+  // IMPORTANT when deploying behind a proxy (Vercel/etc.)
   trustHost: true,
+  adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
   providers: [
     Credentials({
       name: "Credentials",
       credentials: {
-        email: { label: "Email", type: "text" },
+        usernameOrEmail: { label: "Email or Username", type: "text" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(creds) {
-        const email = creds?.email?.toString().toLowerCase() ?? "";
-        const password = creds?.password?.toString() ?? "";
-        const u = demoUsers[email];
-        if (!u || u.password !== password) return null;
+      async authorize(raw) {
+        const parsed = CredsSchema.safeParse(raw);
+        if (!parsed.success) return null;
 
-        // Extra field 'role' is fine; it's carried via jwt callback below
-        const user: AppUser = {
-          id: u.id,
-          name: u.name,
-          email: u.email,
-          role: u.role,
+        const { usernameOrEmail, password } = parsed.data;
+        const id = usernameOrEmail.trim();
+
+        // look up by email OR username, select only what we need
+        const user = await prisma.user.findFirst({
+          where: { OR: [{ email: id }, { username: id }] },
+          select: {
+            id: true,
+            email: true,
+            username: true,
+            role: true, // Prisma enum UserRole
+            memberId: true,
+            passwordHash: true, // <- must exist in your Prisma model
+          },
+        });
+
+        if (!user || !user.passwordHash) return null;
+
+        const ok = await compare(password, user.passwordHash);
+        if (!ok) return null;
+
+        // Return minimal payload; additional fields go into JWT in callbacks
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.username,
+          role: user.role as Role,
+          memberId: user.memberId ?? null,
         };
-        return user;
       },
     }),
   ],
   callbacks: {
     async jwt({ token, user }) {
-      const t = token as TokenWithRole;
+      // put role + memberId onto JWT
       if (user) {
-        // `user` may or may not have role depending on provider
-        const maybe = user as Partial<AppUser>;
-        if (maybe.role) t.role = maybe.role;
+        token.role = (user as any).role;
+        token.memberId = (user as any).memberId ?? null;
       }
-      return t;
+      return token;
     },
     async session({ session, token }) {
-      const s = session as SessionWithRole;
-      const t = token as TokenWithRole;
-      if (s.user) s.user.role = t.role ?? s.user.role ?? "GUEST";
-      return s;
+      // expose role + memberId to the client
+      if (token?.sub) (session.user as any).id = token.sub;
+      (session.user as any).role = token.role;
+      (session.user as any).memberId = token.memberId ?? null;
+      return session;
     },
+  },
+  pages: {
+    signIn: "/auth/login", // optional: your custom login page
   },
 });

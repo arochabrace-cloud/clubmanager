@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -27,7 +27,7 @@ export default function MembersReportPage() {
 
   const printRef = useRef<HTMLDivElement>(null);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     const url = q.trim()
       ? `/api/members?q=${encodeURIComponent(q.trim())}`
@@ -36,11 +36,11 @@ export default function MembersReportPage() {
     const j = await r.json();
     setRows(j.data as Member[]);
     setLoading(false);
-  };
+  }, [q]);
 
   useEffect(() => {
     load();
-  }, []);
+  }, [load]);
 
   const exportCSV = () => {
     const header = [

@@ -1,7 +1,5 @@
 import "./globals.css";
-import { Inter } from "next/font/google";
-
-const inter = Inter({ subsets: ["latin"] });
+import Providers from "./providers";
 
 export const metadata = {
   title: "MEMBRA",
@@ -16,9 +14,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full">
       <body
-        className={`${inter.className} min-h-screen bg-gray-50 text-gray-900`}
+        className="min-h-screen bg-gray-50 text-gray-900 font-sans"
       >
-        {children}
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

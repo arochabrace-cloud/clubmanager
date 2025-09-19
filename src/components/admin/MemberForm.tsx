@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -30,8 +30,6 @@ import {
   EDUCATION_LEVEL,
 } from "@/types/member";
 
-// Optional: supply available membership levels from API/store
-type Level = { id: string; name: string };
 
 const MemberSchema = z.object({
   // Required personal information
@@ -88,12 +86,10 @@ export default function MemberForm({
   initial,
   onSubmit,
   submitting,
-  levels,
 }: {
   initial?: Partial<Member> & { passportPictureUrl?: string | null };
   submitting?: boolean;
   onSubmit: (values: MemberFormValues) => void;
-  levels?: Level[]; // optional to render a Select for membership levels
 }) {
   const form = useForm<MemberFormValues>({
     resolver: zodResolver(MemberSchema),
@@ -481,7 +477,7 @@ export default function MemberForm({
               </p>
             )}
             <p className="text-xs text-muted-foreground mt-1">
-              Upload member's passport photo (JPG/PNG/WebP, max 5MB)
+              Upload member&apos;s passport photo (JPG/PNG/WebP, max 5MB)
             </p>
           </div>
           {previewUrl && (

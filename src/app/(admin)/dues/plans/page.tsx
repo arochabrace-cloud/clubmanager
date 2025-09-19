@@ -17,7 +17,6 @@ import LoadingSpinner from "@/components/shared/LoadingSpinner";
 export default function PlansPage() {
   const [rows, setRows] = useState<SubscriptionPlan[]>([]);
   const [loading, setLoading] = useState(true);
-  const [emptyForm, setEmptyForm] = useState("");
   // form state
   const [form, setForm] = useState({
     name: "",

@@ -1,0 +1,23 @@
+Runtime TypeError
+
+
+Cannot read properties of undefined (reading 'modules')
+
+Call Stack
+11
+
+Show 4 ignore-listed frame(s)
+(middleware)/./node_modules/node-gyp-build/node-gyp-build.js
+.next/server/middleware.js (2261:1)
+__webpack_require__
+.next/server/edge-runtime-webpack.js (37:33)
+fn
+.next/server/edge-runtime-webpack.js (315:21)
+(middleware)/./node_modules/node-gyp-build/index.js
+.next/server/middleware.js (2251:1)
+__webpack_require__
+.next/server/edge-runtime-webpack.js (37:33)
+fn
+.next/server/edge-runtime-webpack.js (315:21)
+(middleware)/./node_modules/bcrypt/bcrypt.js
+.next/server/middleware.js (552:1)

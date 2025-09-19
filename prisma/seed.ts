@@ -7,7 +7,61 @@ async function main() {
 
   // Clean existing data (optional, for development)
   await prisma.member.deleteMany()
-  console.log('Deleted existing members')
+  await prisma.memberCategory.deleteMany()
+  console.log('Deleted existing members and categories')
+
+  // Create member categories first
+  const bronzeCategory = await prisma.memberCategory.create({
+    data: {
+      code: 'BRONZE',
+      name: 'Bronze Level',
+      description: 'Basic membership level',
+      rank: 3,
+      active: true,
+    },
+  })
+
+  const silverCategory = await prisma.memberCategory.create({
+    data: {
+      code: 'SILVER',
+      name: 'Silver Level',
+      description: 'Intermediate membership level',
+      rank: 2,
+      active: true,
+    },
+  })
+
+  const goldCategory = await prisma.memberCategory.create({
+    data: {
+      code: 'GOLD',
+      name: 'Gold Level',
+      description: 'Premium membership level',
+      rank: 1,
+      active: true,
+    },
+  })
+
+  const vipCategory = await prisma.memberCategory.create({
+    data: {
+      code: 'VIP',
+      name: 'VIP Level',
+      description: 'Exclusive membership level',
+      rank: 0,
+      active: true,
+    },
+  })
+
+  const beginnerCategory = await prisma.memberCategory.create({
+    data: {
+      code: 'BEGINNER',
+      name: 'Beginner Level',
+      description: 'Entry-level membership',
+      rank: 4,
+      active: true,
+    },
+  })
+
+  console.log('Created member categories')
 
   // Create sample members
   const member1 = await prisma.member.create({
@@ -27,7 +81,7 @@ async function main() {
       membershipLevel: 'ORDINARY',
       branchWard: 'Accra Central Branch',
       recruitedBy: 'John Doe',
-      level: 'BRONZE',
+      memberCategoryId: bronzeCategory.id,
       status: 'ACTIVE',
       outstandingBalance: 120.0,
       nationality: 'Ghanaian',
@@ -52,7 +106,7 @@ async function main() {
       membershipLevel: 'EXECUTIVE',
       branchWard: 'Kumasi Branch',
       recruitedBy: 'Mary Johnson',
-      level: 'GOLD',
+      memberCategoryId: goldCategory.id,
       status: 'ACTIVE',
       outstandingBalance: 0.0,
       nationality: 'Ghanaian',
@@ -76,7 +130,7 @@ async function main() {
       highestEducationLevel: 'TERTIARY',
       membershipLevel: 'ORDINARY',
       branchWard: 'Cape Coast Branch',
-      level: 'SILVER',
+      memberCategoryId: silverCategory.id,
       status: 'PENDING',
       outstandingBalance: 75.5,
       nationality: 'Ghanaian',
@@ -100,7 +154,7 @@ async function main() {
       membershipLevel: 'DELEGATE',
       branchWard: 'Tamale Branch',
       recruitedBy: 'Ama Mensah',
-      level: 'VIP',
+      memberCategoryId: vipCategory.id,
       status: 'ACTIVE',
       outstandingBalance: 0.0,
       nationality: 'Ghanaian',
@@ -123,7 +177,7 @@ async function main() {
       highestEducationLevel: 'SECONDARY',
       membershipLevel: 'ORDINARY',
       branchWard: 'Takoradi Branch',
-      level: 'BEGINNER',
+      memberCategoryId: beginnerCategory.id,
       status: 'PROSPECT',
       outstandingBalance: 200.0,
       nationality: 'Ghanaian',
