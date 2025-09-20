@@ -5,8 +5,12 @@ import { PrismaAdapter } from "@auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import { compare } from "bcrypt";
 import { z } from "zod";
+import type { JWT } from "next-auth/jwt";
+import type { User as NextAuthUser } from "next-auth";
 
 type Role = "ADMIN" | "MEMBER";
+type AppUser = NextAuthUser & { role: Role; memberId?: string | null };
+type TokenWithRole = JWT & { role?: Role; memberId?: string | null };
 
 const CredsSchema = z.object({
   // allow login by email OR username
@@ -64,22 +68,25 @@ export const { auth, signIn, signOut, handlers } = NextAuth({
   ],
   callbacks: {
     async jwt({ token, user }) {
-      // put role + memberId onto JWT
+      const t = token as TokenWithRole;
       if (user) {
-        token.role = (user as any).role;
-        token.memberId = (user as any).memberId ?? null;
+        const u = user as AppUser;
+        t.role = u.role;
+        t.memberId = u.memberId ?? null;
       }
-      return token;
+      return t;
     },
     async session({ session, token }) {
-      // expose role + memberId to the client
-      if (token?.sub) (session.user as any).id = token.sub;
-      (session.user as any).role = token.role;
-      (session.user as any).memberId = token.memberId ?? null;
-      return session;
+      const s = session as typeof session & {
+        user: typeof session.user & { role?: Role; memberId?: string | null };
+      };
+      const t = token as TokenWithRole;
+
+      if (s.user) {
+        s.user.role = t.role;
+        s.user.memberId = t.memberId ?? null;
+      }
+      return s;
     },
-  },
-  pages: {
-    signIn: "/auth/login", // optional: your custom login page
   },
 });

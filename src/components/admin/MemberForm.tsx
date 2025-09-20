@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import Image from "next/image";
 import {
   Select,
   SelectContent,
@@ -29,7 +30,6 @@ import {
   MEMBERSHIP_LEVEL,
   EDUCATION_LEVEL,
 } from "@/types/member";
-
 
 const MemberSchema = z.object({
   // Required personal information
@@ -482,10 +482,12 @@ export default function MemberForm({
           </div>
           {previewUrl && (
             <div className="justify-self-start">
-              <img
+              <Image
                 src={previewUrl}
                 alt="Passport preview"
-                className="h-24 w-24 rounded object-cover border shadow-sm"
+                width={96} // same as h-24 (24*4=96px)
+                height={96} // same as w-24
+                className="rounded object-cover border shadow-sm"
               />
             </div>
           )}
