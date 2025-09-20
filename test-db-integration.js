@@ -1,7 +1,7 @@
 // test-db-integration.js
 // Simple script to test database connection and CRUD operations
 
-const { PrismaClient } = require('./src/generated/prisma');
+const { PrismaClient } = require('@prisma/client');
 
 const prisma = new PrismaClient();
 
@@ -29,8 +29,7 @@ async function testDatabaseIntegration() {
         regionConstituencyElectoralArea: 'Test Region',
         membershipLevel: 'ORDINARY',
         email: 'john.doe.test@example.com',
-        status: 'ACTIVE',
-        level: 'GOLD'
+        status: 'ACTIVE'
       }
     });
     console.log('✅ Test member created:', testMember.membershipId);

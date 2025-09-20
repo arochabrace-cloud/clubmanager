@@ -1,6 +1,6 @@
 // src/lib/members.ts
 import { db } from "./db";
-import { Member as PrismaMember } from "../generated/prisma";
+import { Member as PrismaMember } from "@prisma/client";
 import {
   Member,
   // keep your existing frontend types (level as string code)
