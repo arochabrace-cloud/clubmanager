@@ -37,8 +37,11 @@ export default function Home() {
   }
 
   // Signed in → route by role
-  const role = session.user && 'role' in session.user ? session.user.role as "ADMIN" | "MEMBER" | undefined : undefined;
-  const dashboardHref = role === "ADMIN" ? "/admin" : "/member";
+  const role =
+    session.user && "role" in session.user
+      ? (session.user.role as "ADMIN" | "MEMBER" | undefined)
+      : undefined;
+  const dashboardHref = role === "ADMIN" ? "/dashboard" : "/dashbaord";
 
   return (
     <div className="min-h-screen grid place-items-center p-6">
@@ -49,7 +52,7 @@ export default function Home() {
         </p>
         <Link href={dashboardHref}>
           <Button className="w-full">
-            Open {role === "ADMIN" ? "Admin" : "Member"} Dashboard
+            Open {role === "ADMIN" ? "dashboard" : "dashboard"} Dashboard
           </Button>
         </Link>
         <p className="text-[11px] text-gray-500">

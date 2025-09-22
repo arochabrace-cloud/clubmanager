@@ -67,7 +67,11 @@ export async function GET(req: Request) {
         memberCategoryIdFilter
           ? { memberCategoryId: memberCategoryIdFilter }
           : {},
-        status ? { status: status as 'PROSPECT' | 'PENDING' | 'ACTIVE' | 'SUSPENDED' } : {},
+        status
+          ? {
+              status: status as "PROSPECT" | "PENDING" | "ACTIVE" | "SUSPENDED",
+            }
+          : {},
         q
           ? {
               OR: [
@@ -188,18 +192,26 @@ export async function POST(req: Request) {
         lastName: body.lastName as string,
         email: (body.email as string | null) ?? null,
         phone: body.phone as string,
-        gender: body.gender as 'MALE' | 'FEMALE' | 'OTHER',
+        gender: body.gender as "MALE" | "FEMALE" | "OTHER",
         dateOfBirth: new Date(body.dateOfBirth as string),
         nationalId: body.nationalId as string,
         residentialAddress: body.residentialAddress as string,
         regionConstituencyElectoralArea:
           body.regionConstituencyElectoralArea as string,
 
-        membershipLevel: body.membershipLevel as 'ORDINARY' | 'EXECUTIVE' | 'DELEGATE' | 'OTHER',
+        membershipLevel: body.membershipLevel as
+          | "ORDINARY"
+          | "EXECUTIVE"
+          | "DELEGATE"
+          | "OTHER",
         branchWard: (body.branchWard as string | null) ?? null,
         recruitedBy: (body.recruitedBy as string | null) ?? null,
 
-        status: ((body.status as string) ?? "PROSPECT") as 'PROSPECT' | 'PENDING' | 'ACTIVE' | 'SUSPENDED',
+        status: ((body.status as string) ?? "PROSPECT") as
+          | "PROSPECT"
+          | "PENDING"
+          | "ACTIVE"
+          | "SUSPENDED",
         outstandingBalance: (body.outstandingBalance as number) ?? 0,
 
         passportPictureUrl: (body.passportPictureUrl as string | null) ?? null,
